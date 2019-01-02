@@ -64,6 +64,10 @@ impl<'a> Emulator<'a> {
 
         InputResult::Continue
     }
+
+    pub fn bgr_pixels(&self) -> Box<[u8; 184320]> {
+       self.cpu.mem.ppu.screen.clone() 
+    }
 }
 
 fn record_fps(last_time: &mut f64, frames: &mut usize) {
