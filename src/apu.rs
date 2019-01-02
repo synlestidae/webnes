@@ -6,7 +6,7 @@
 
 use audio::{self, OutputBuffer};
 use mem::Mem;
-use speex::Resampler;
+use resampler::Resampler;
 use util::{Save, Xorshift};
 
 use std::fs::File;
@@ -466,7 +466,7 @@ impl Apu {
 
             sample_buffer_offset: 0,
             output_buffer: output_buffer,
-            resampler: Resampler::new(1, NES_SAMPLE_RATE, OUTPUT_SAMPLE_RATE, 0).unwrap(),
+            resampler: Resampler::new(NES_SAMPLE_RATE, OUTPUT_SAMPLE_RATE),
 
             cy: 0,
             ticks: 0,
@@ -745,8 +745,7 @@ impl Apu {
         let _lock = audio::lock();
         unsafe {
             // Resample and output the audio.
-            let _ = self.resampler.process(0,
-                                           &mut self.sample_buffers[0].samples,
+            let _ = self.resampler.process(&mut self.sample_buffers[0].samples,
                                            &mut (*output_buffer).samples);
             (*output_buffer).play_offset = 0;
         }

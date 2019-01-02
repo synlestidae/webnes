@@ -16,6 +16,7 @@ pub mod apu;
 pub mod audio;
 #[macro_use]
 pub mod cpu;
+pub mod resampler;
 pub mod disasm;
 pub mod gfx;
 pub mod input;
@@ -27,6 +28,7 @@ pub mod input_source;
 pub mod emulator;
 
 // C library support
+#[cfg(not(target_arch = "wasm32"))]
 pub mod speex;
 
 use apu::Apu;
