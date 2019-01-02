@@ -4,6 +4,8 @@
 
 #[macro_use]
 extern crate lazy_static;
+
+#[cfg(not(target_arch = "wasm32"))]
 extern crate libc;
 
 #[cfg(not(target_arch = "wasm32"))]

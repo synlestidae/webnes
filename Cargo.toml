@@ -1,6 +1,6 @@
 [package]
 
-name = "sprocketnes"
+name = "nes"
 version = "0.1.0"
 authors = [ "pcwalton@mimiga.net" ]
 
