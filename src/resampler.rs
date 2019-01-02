@@ -1,15 +1,12 @@
-#[cfg(not(target_arch = "wasm32"))]
-use speex::Resampler as SpeexResampler;
-
 pub struct Resampler {
-    #[cfg(not(target_arch = "wasm32"))]
-    resampler: SpeexResampler
+    //#[cfg(not(target_arch = "wasm32"))]
+    //resampler: SpeexResampler
 }
 
 impl Resampler {
     pub fn new(nes_sample_rate: u32, output_sample_rate: u32) -> Self {
-        Self { 
-            resampler: SpeexResampler::new(1, nes_sample_rate, output_sample_rate, 0).unwrap() 
+        Resampler { 
+            //resampler: SpeexResampler::new(1, nes_sample_rate, output_sample_rate, 0).unwrap() 
         }
     }
 

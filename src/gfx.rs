@@ -2,15 +2,6 @@
 // Author: Patrick Walton
 //
 
-
-#[cfg(not(target_arch = "wasm32"))]
-use sdl2::pixels::PixelFormatEnum::BGR24;
-#[cfg(not(target_arch = "wasm32"))]
-use sdl2::render::{Renderer, Texture, TextureAccess};
-#[cfg(not(target_arch = "wasm32"))]
-use sdl2::{InitBuilder, Sdl};
-
-
 /// Emulated screen width in pixels
 const SCREEN_WIDTH: usize = 256;
 /// Emulated screen height in pixels
@@ -282,18 +273,14 @@ impl Scale {
     }
 }
 
-pub struct Gfx<'a> {
-    #[cfg(not(target_arch = "wasm32"))]
-    pub renderer: Box<Renderer<'a>>,
-    #[cfg(not(target_arch = "wasm32"))]
-    pub texture: Box<Texture>,
+pub struct Gfx {
     pub scale: Scale,
     pub status_line: StatusLine,
 }
 
 #[cfg(target_arch = "wasm32")]
-impl<'a> Gfx<'a> {
-    pub fn new(scale: Scale) -> Gfx<'a> {
+impl Gfx {
+    pub fn new(scale: Scale) -> Gfx {
         Gfx {
             scale: scale,
             status_line: StatusLine::new(),
@@ -313,29 +300,14 @@ impl<'a> Gfx<'a> {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-impl<'a> Gfx<'a> {
-    pub fn new(scale: Scale) -> (Gfx<'a>, Sdl) {
+impl Gfx {
+    pub fn new(scale: Scale) -> Gfx {
         // FIXME: Handle SDL better
 
-        let sdl = InitBuilder::new().video().audio().timer().events().unwrap();
-
-        let mut window_builder = sdl.window("sprocketnes",
-                                            (SCREEN_WIDTH as usize * scale.factor()) as u32,
-                                            (SCREEN_HEIGHT as usize * scale.factor()) as u32);
-        let window = window_builder.position_centered().build().unwrap();
-
-        let renderer = window.renderer().accelerated().present_vsync().build().unwrap();
-        let texture = renderer.create_texture(BGR24,
-                                              TextureAccess::Streaming,
-                                              (SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32))
-                                              .unwrap();
-
-        (Gfx {
-            renderer: Box::new(renderer),
-            texture: Box::new(texture),
+        Gfx {
             scale: scale,
             status_line: StatusLine::new(),
-        }, sdl)
+        }
     }
 
     pub fn tick(&mut self) {
@@ -346,13 +318,13 @@ impl<'a> Gfx<'a> {
     pub fn composite(&mut self, ppu_screen: &mut [u8; SCREEN_SIZE]) {
         self.status_line.render(ppu_screen);
         self.blit(ppu_screen);
-        self.renderer.clear();
-        self.renderer.copy(&self.texture, None, None);
-        self.renderer.present();
+        //self.renderer.clear();
+        //self.renderer.copy(&self.texture, None, None);
+        //self.renderer.present();
     }
 
     /// Updates the window texture with new screen data.
     fn blit(&mut self, ppu_screen: &[u8; SCREEN_SIZE]) {
-        self.texture.update(None, ppu_screen, SCREEN_WIDTH * 3).unwrap()
+        //self.texture.update(None, ppu_screen, SCREEN_WIDTH * 3).unwrap()
     }
 }

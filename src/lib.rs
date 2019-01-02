@@ -5,13 +5,6 @@
 #[macro_use]
 extern crate lazy_static;
 
-#[cfg(not(target_arch = "wasm32"))]
-extern crate libc;
-
-#[cfg(not(target_arch = "wasm32"))]
-extern crate sdl2;
-extern crate time;
-
 // NB: This must be first to pick up the macro definitions. What a botch.
 #[macro_use]
 pub mod util;
@@ -30,10 +23,10 @@ pub mod ppu;
 pub mod rom;
 pub mod input_source;
 pub mod emulator;
+pub mod time;
 
 // C library support
-#[cfg(not(target_arch = "wasm32"))]
-pub mod speex;
+//pub mod speex;
 
 use apu::Apu;
 use cpu::Cpu;
@@ -53,27 +46,18 @@ use std::fs::File;
 use std::path::Path;
 use std::rc::Rc;
 
-use sdl2::Sdl;
-use sdl2::event::Event;
-use sdl2::event::Event::*;
-use sdl2::keyboard::Keycode;
-
 use std::sync::mpsc::channel;
 
-fn record_fps(last_time: &mut f64, frames: &mut usize) {
-    if cfg!(debug) {
-        let now = time::precise_time_s();
-        if now >= *last_time + 1f64 {
-            println!("{} FPS", *frames);
-            *frames = 0;
-            *last_time = now;
-        } else {
-            *frames += 1;
-        }
+extern crate web_sys;
+
+// A macro to provide `println!(..)`-style syntax for `console.log` logging.
+macro_rules! log {
+    ( $( $t:tt )* ) => {
+        web_sys::console::log_1(&format!( $( $t )* ).into());
     }
 }
 
-fn handle_gamepad_event(key: Keycode, down: bool) -> Option<InputEvent> {
+/*fn handle_gamepad_event(key: Keycode, down: bool) -> Option<InputEvent> {
     let event_type = match key {
         Keycode::Left   => EventType::Left,
         Keycode::Down   => EventType::Down,
@@ -90,11 +74,11 @@ fn handle_gamepad_event(key: Keycode, down: bool) -> Option<InputEvent> {
         event_type: event_type,
         active: down
     })
-}
+}*/
 
 /// Starts the emulator main loop with a ROM and window scaling. Returns when the user presses ESC.
 pub fn start_emulator(rom: Rom, scale: Scale) {
-    let rom = Box::new(rom);
+    /*let rom = Box::new(rom);
     println!("Loaded ROM: {}", rom.header);
 
     let (mut gfx, mut sdl) = Gfx::new(scale);
@@ -139,5 +123,5 @@ pub fn start_emulator(rom: Rom, scale: Scale) {
 
     }
 
-    audio::close();
+    audio::close();*/
 }

@@ -3,16 +3,17 @@ use cpu::{Cpu};
 use gfx::*;
 use input_source::*;
 use input::*;
+use time;
 
-pub struct Emulator<'a> {
+pub struct Emulator {
     cpu: Cpu<MemMap>,
-    gfx: Gfx<'a>,
+    gfx: Gfx,
     last_time: f64,
     frames: usize
 }
 
-impl<'a> Emulator<'a> {
-    pub fn new(mem: MemMap, gfx: Gfx<'a>) -> Self {
+impl Emulator {
+    pub fn new(mem: MemMap, gfx: Gfx) -> Self {
         let mut cpu = Cpu::new(mem);
 
         cpu.reset();

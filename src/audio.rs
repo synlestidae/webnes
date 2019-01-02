@@ -7,7 +7,6 @@
 // TODO: This module is very unsafe. Adding a reader-writer audio lock to SDL would help make it
 // safe.
 
-use sdl2::audio::{AudioDevice, AudioCallback, AudioSpecDesired, AudioDeviceLockGuard};
 use std::cmp;
 use std::mem;
 use std::slice::from_raw_parts_mut;
@@ -19,7 +18,7 @@ use std::sync::{Mutex, Condvar};
 
 const SAMPLE_COUNT: usize = 4410 * 2;
 
-static mut g_audio_device: Option<*mut AudioDevice<NesAudioCallback>> = None;
+//static mut g_audio_device: Option<*mut AudioDevice<NesAudioCallback>> = None;
 
 static mut g_output_buffer: Option<*mut OutputBuffer> = None;
 
@@ -35,7 +34,7 @@ pub struct OutputBuffer {
 
 pub struct NesAudioCallback;
 
-impl AudioCallback for NesAudioCallback {
+/*impl AudioCallback for NesAudioCallback {
     type Channel = i16;
 
     fn callback(&mut self, buf: &mut [Self::Channel]) {
@@ -57,10 +56,10 @@ impl AudioCallback for NesAudioCallback {
             AUDIO_CONDVAR.notify_one();
         }
     }
-}
+}*/
 
 /// Audio initialization. If successful, returns a pointer to an allocated `OutputBuffer` that can
-/// be filled with raw audio data.
+/// be filled with raw audio data. 
 pub fn open() -> Option<*mut OutputBuffer> {
     let output_buffer = Box::new(OutputBuffer {
         samples: [ 0; SAMPLE_COUNT ],
@@ -71,11 +70,11 @@ pub fn open() -> Option<*mut OutputBuffer> {
     };
 
     unsafe {
-        g_output_buffer = Some(output_buffer_ptr);
         mem::forget(output_buffer);
+        Some(output_buffer_ptr)
     }
 
-    let spec = AudioSpecDesired {
+    /*let spec = AudioSpecDesired {
         freq: Some(44100),
         channels: Some(1),
         samples: Some(4410),
@@ -93,13 +92,14 @@ pub fn open() -> Option<*mut OutputBuffer> {
                 return None
             }
         }
-    }
+    }*/
 }
 
 //
 // Audio tear-down
 //
 
+/*
 pub fn close() {
     unsafe {
         match g_audio_device {
@@ -116,4 +116,4 @@ pub fn lock<'a>() -> Option<AudioDeviceLockGuard<'a, NesAudioCallback>> {
     unsafe {
         g_audio_device.map(|dev| (*dev).lock())
     }
-}
+}*/

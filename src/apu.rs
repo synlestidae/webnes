@@ -11,6 +11,7 @@ use util::{Save, Xorshift};
 
 use std::fs::File;
 use std::ops::{Deref, DerefMut};
+use web_sys;
 
 const CYCLES_PER_EVEN_TICK: u64 = 7438;
 const CYCLES_PER_ODD_TICK: u64 = 7439;
@@ -436,37 +437,55 @@ impl Mem for Apu {
     }
 }
 
-impl Apu {
-    pub fn new(output_buffer: Option<*mut OutputBuffer>) -> Apu {
-        Apu {
-            regs: Regs {
-                pulses: [ ApuPulse::new(), ApuPulse::new() ],
-                triangle: ApuTriangle::new(),
-                noise: ApuNoise::new(),
-                status: ApuStatus(0),
-            },
 
-            sample_buffers: Box::new([
-                SampleBuffer {
-                    samples: [ 0; SAMPLE_COUNT ]
-                },
-                SampleBuffer {
-                    samples: [ 0; SAMPLE_COUNT ]
-                },
-                SampleBuffer {
-                    samples: [ 0; SAMPLE_COUNT ]
-                },
-                SampleBuffer {
-                    samples: [ 0; SAMPLE_COUNT ]
-                },
-                SampleBuffer {
-                    samples: [ 0; SAMPLE_COUNT ]
-                },
-            ]),
+
+// A macro to provide `println!(..)`-style syntax for `console.log` logging.
+macro_rules! log {
+    ( $( $t:tt )* ) => {
+        web_sys::console::log_1(&format!( $( $t )* ).into());
+    }
+}
+
+impl Apu {
+    pub fn new() -> Apu {
+        let output_buffer = None;
+        log!("Thank you come again");
+
+        let regs = Regs {
+            pulses: [ ApuPulse::new(), ApuPulse::new() ],
+            triangle: ApuTriangle::new(),
+            noise: ApuNoise::new(),
+            status: ApuStatus(0),
+        };
+
+        let sample_buffers = Box::new([
+            SampleBuffer {
+                samples: [ 0; SAMPLE_COUNT ]
+            },
+            SampleBuffer {
+                samples: [ 0; SAMPLE_COUNT ]
+            },
+            SampleBuffer {
+                samples: [ 0; SAMPLE_COUNT ]
+            },
+            SampleBuffer {
+                samples: [ 0; SAMPLE_COUNT ]
+            },
+            SampleBuffer {
+                samples: [ 0; SAMPLE_COUNT ]
+            },
+        ]);
+
+        let resampler = Resampler::new(NES_SAMPLE_RATE, OUTPUT_SAMPLE_RATE);
+
+        Apu {
+            regs: regs,
+
+            sample_buffers: sample_buffers,
 
             sample_buffer_offset: 0,
             output_buffer: output_buffer,
-            resampler: Resampler::new(NES_SAMPLE_RATE, OUTPUT_SAMPLE_RATE),
+            resampler: resampler,
 
             cy: 0,
             ticks: 0,
@@ -742,7 +761,7 @@ impl Apu {
                 }
             }
         }
-        let _lock = audio::lock();
+        //let _lock = audio::lock();
         unsafe {
             // Resample and output the audio.
             let _ = self.resampler.process(&mut self.sample_buffers[0].samples,
