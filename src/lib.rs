@@ -40,6 +40,7 @@ use rom::Rom;
 use util::Save;
 use std::thread;
 use input_source::*;
+use emulator::Emulator;
 
 use std::cell::RefCell;
 use std::fs::File;
@@ -97,55 +98,18 @@ pub fn start_emulator(rom: Rom, scale: Scale) {
     let mapper = Rc::new(RefCell::new(mapper));
     let ppu = Ppu::new(Vram::new(mapper.clone()), Oam::new());
 
-    let (send, recv) = channel();
-
-    let input_src = InputSource::new(recv);
-
-
     let apu = Apu::new(audio_buffer);
-    let memmap = MemMap::new(ppu, Input::new(input_src), mapper, apu);
-    let mut cpu = Cpu::new(memmap);
+    let memmap = MemMap::new(ppu, Input::new(), mapper, apu);
+
+    let mut emulator = Emulator::new(memmap, gfx);
 
     // TODO: Add a flag to not reset for nestest.log
-    cpu.reset();
-
-    let mut last_time = time::precise_time_s();
-    let mut frames = 0;
 
     loop {
-        cpu.step();
+        emulator.step();
 
-        let ppu_result = cpu.mem.ppu.step(cpu.cy);
-        if ppu_result.vblank_nmi {
-            cpu.nmi();
-        } else if ppu_result.scanline_irq {
-            cpu.irq();
-        }
-
-        cpu.mem.apu.step(cpu.cy);
-
-        if ppu_result.new_frame {
-            gfx.tick();
-            gfx.composite(&mut *cpu.mem.ppu.screen);
-            record_fps(&mut last_time, &mut frames);
-            cpu.mem.apu.play_channels();
-
-            match cpu.mem.input.check_input() {
-                InputResult::Continue => {}
-                InputResult::Quit => break,
-                InputResult::SaveState => {
-                    cpu.save(&mut File::create(&Path::new("state.sav")).unwrap());
-                    gfx.status_line.set("Saved state".to_string());
-                }
-                InputResult::LoadState => {
-                    cpu.load(&mut File::open(&Path::new("state.sav")).unwrap());
-                    gfx.status_line.set("Loaded state".to_string());
-                }
-            }
-        }
-
-        while let Some(ev) = sdl.event_pump().poll_event() {
-            let i = match ev {
+        for ev in sdl.event_pump().poll_iter() {
+            let (e, active) = match ev {
                 Event::KeyDown { keycode: Some(Keycode::S), .. } => (EventType::Save, true),
                 Event::KeyDown { keycode: Some(Keycode::L), .. } => (EventType::Load, true),
                 Event::KeyDown { keycode: Some(key), .. } => {
@@ -160,12 +124,11 @@ pub fn start_emulator(rom: Rom, scale: Scale) {
                         _ => continue
                     }
                 },
-                Event::Quit { .. } => (EventType::Quit, true),
+                Event::Quit { .. } => break,
                 _ => continue
             };
 
-            let (event_type, active) = i; 
-            send.send(InputEvent { active: active, event_type: event_type });
+            emulator.input(&InputEvent { active: active, event_type: e});
         }
 
     }

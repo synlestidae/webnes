@@ -1,13 +1,10 @@
 use mem::*;
-use rom::Rom;
 use cpu::{Cpu};
 use gfx::*;
 use input_source::*;
 use input::*;
 
 pub struct Emulator<'a> {
-    rom: Box<Rom>,
-    //memmap: MemMap,
     cpu: Cpu<MemMap>,
     gfx: Gfx<'a>,
     last_time: f64,
@@ -15,10 +12,13 @@ pub struct Emulator<'a> {
 }
 
 impl<'a> Emulator<'a> {
-    pub fn new(mem: MemMap, rom: Box<Rom>, gfx: Gfx<'a>) -> Self {
+    pub fn new(mem: MemMap, gfx: Gfx<'a>) -> Self {
+        let mut cpu = Cpu::new(mem);
+
+        cpu.reset();
+
         Self {
-            rom: rom,
-            cpu: Cpu::new(mem),
+            cpu: cpu,
             gfx: gfx,
             last_time: 0.0,
             frames: 0
@@ -42,24 +42,10 @@ impl<'a> Emulator<'a> {
             self.gfx.composite(&mut *self.cpu.mem.ppu.screen);
             record_fps(&mut self.last_time, &mut self.frames);
             self.cpu.mem.apu.play_channels();
-
-            match self.cpu.mem.input.check_input() {
-                InputResult::Continue => {}
-                InputResult::Quit => {},
-                InputResult::SaveState => {
-                    //self.cpu.save(&mut File::create(&Path::new("state.sav")).unwrap());
-                    self.gfx.status_line.set("Saved state".to_string());
-                }
-                InputResult::LoadState => {
-                    //self.cpu.load(&mut File::open(&Path::new("state.sav")).unwrap());
-                    self.gfx.status_line.set("Loaded state".to_string());
-                }
-            }
         }
-        unimplemented!()
     }
 
-    pub fn input(&mut self, ev: InputEvent) -> InputResult {
+    pub fn input(&mut self, ev: &InputEvent) -> InputResult {
         let gamepad = &mut self.cpu.mem.input.gamepad_0;
 
         match ev.event_type {

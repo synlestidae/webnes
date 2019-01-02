@@ -4,7 +4,6 @@
 
 use mem::Mem;
 use std::ops::Deref;
-use input_source::*;
 
 //
 // The "strobe state": the order in which the NES reads the buttons.
@@ -72,8 +71,7 @@ pub struct GamePadState {
 }
 
 pub struct Input {
-    pub gamepad_0: GamePadState,
-    pub input_source: InputSource
+    pub gamepad_0: GamePadState
 
 }
 
@@ -85,7 +83,7 @@ pub enum InputResult {
 }
 
 impl Input {
-    pub fn new(input_source: InputSource) -> Input {
+    pub fn new() -> Input {
         Input {
             gamepad_0: GamePadState {
                 left: false,
@@ -98,29 +96,8 @@ impl Input {
                 start: false,
 
                 strobe_state: StrobeState{val: STROBE_STATE_A}
-            },
-            input_source: input_source,
-        }
-    }
-
-    pub fn check_input(&mut self) -> InputResult {
-        while let Some(ev) = self.input_source.get_input_event() {
-            match ev.event_type {
-                EventType::Right => self.gamepad_0.right = ev.active,
-                EventType::Down => self.gamepad_0.down = ev.active,
-                EventType::Left => self.gamepad_0.left = ev.active,
-                EventType::Up => self.gamepad_0.up = ev.active,
-                EventType::A => self.gamepad_0.a = ev.active,
-                EventType::B => self.gamepad_0.b = ev.active,
-                EventType::Start => self.gamepad_0.start = ev.active,
-                EventType::Select => self.gamepad_0.select = ev.active,
-                EventType::Quit => return InputResult::Quit,
-                EventType::Save => return InputResult::SaveState,
-                EventType::Load => return InputResult::LoadState
             }
         }
-
-        InputResult::Continue
     }
 }
 
