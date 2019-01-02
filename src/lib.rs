@@ -5,6 +5,8 @@
 #[macro_use]
 extern crate lazy_static;
 extern crate libc;
+
+#[cfg(not(target_arch = "wasm32"))]
 extern crate sdl2;
 extern crate time;
 

@@ -2,8 +2,12 @@
 // Author: Patrick Walton
 //
 
+
+#[cfg(not(target_arch = "wasm32"))]
 use sdl2::pixels::PixelFormatEnum::BGR24;
+#[cfg(not(target_arch = "wasm32"))]
 use sdl2::render::{Renderer, Texture, TextureAccess};
+#[cfg(not(target_arch = "wasm32"))]
 use sdl2::{InitBuilder, Sdl};
 
 
@@ -279,12 +283,36 @@ impl Scale {
 }
 
 pub struct Gfx<'a> {
+    #[cfg(not(target_arch = "wasm32"))]
     pub renderer: Box<Renderer<'a>>,
+    #[cfg(not(target_arch = "wasm32"))]
     pub texture: Box<Texture>,
     pub scale: Scale,
     pub status_line: StatusLine,
 }
 
+#[cfg(target_arch = "wasm32")]
+impl<'a> Gfx<'a> {
+    pub fn new(scale: Scale) -> Gfx<'a> {
+        Gfx {
+            scale: scale,
+            status_line: StatusLine::new(),
+        }
+    }
+
+    pub fn tick(&mut self) {
+    }
+
+    /// Copies the overlay onto the given screen and displays it to the SDL window.
+    pub fn composite(&mut self, ppu_screen: &mut [u8; SCREEN_SIZE]) {
+    }
+
+    /// Updates the window texture with new screen data.
+    fn blit(&mut self, ppu_screen: &[u8; SCREEN_SIZE]) {
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
 impl<'a> Gfx<'a> {
     pub fn new(scale: Scale) -> (Gfx<'a>, Sdl) {
         // FIXME: Handle SDL better
