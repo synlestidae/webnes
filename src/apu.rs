@@ -407,10 +407,10 @@ struct SampleBuffer {
 pub struct Apu {
     regs: Regs,
 
-    sample_buffers: Box<[SampleBuffer; 5]>,
+    /*sample_buffers: Box<[SampleBuffer; 5]>,
     sample_buffer_offset: usize,
     output_buffer: Option<*mut OutputBuffer>,
-    resampler: Resampler,
+    resampler: Resampler,*/
 
     pub cy: u64,
     pub ticks: u64,
@@ -448,7 +448,7 @@ macro_rules! log {
 
 impl Apu {
     pub fn new() -> Apu {
-        let output_buffer = None;
+        //let output_buffer = None;
         log!("Thank you come again");
 
         let regs = Regs {
@@ -458,35 +458,8 @@ impl Apu {
             status: ApuStatus(0),
         };
 
-        let sample_buffers = Box::new([
-            SampleBuffer {
-                samples: [ 0; SAMPLE_COUNT ]
-            },
-            SampleBuffer {
-                samples: [ 0; SAMPLE_COUNT ]
-            },
-            SampleBuffer {
-                samples: [ 0; SAMPLE_COUNT ]
-            },
-            SampleBuffer {
-                samples: [ 0; SAMPLE_COUNT ]
-            },
-            SampleBuffer {
-                samples: [ 0; SAMPLE_COUNT ]
-            },
-        ]);
-
-        let resampler = Resampler::new(NES_SAMPLE_RATE, OUTPUT_SAMPLE_RATE);
-
         Apu {
             regs: regs,
-
-            sample_buffers: sample_buffers,
-
-            sample_buffer_offset: 0,
-            output_buffer: output_buffer,
-            resampler: resampler,
-
             cy: 0,
             ticks: 0,
         }
@@ -596,11 +569,11 @@ impl Apu {
         self.regs.noise.envelope.tick();
 
         // Fill the sample buffers.
-        self.play_pulse(0, 0);
+        /*self.play_pulse(0, 0);
         self.play_pulse(1, 1);
         self.play_triangle(2);
-        self.play_noise(3);
-        self.sample_buffer_offset += NES_SAMPLES_PER_TICK as usize;
+        self.play_noise(3);*/
+        //self.sample_buffer_offset += NES_SAMPLES_PER_TICK as usize;
 
         // TODO: 60 Hz IRQ.
 
@@ -625,7 +598,7 @@ impl Apu {
     }
 
     fn play_pulse(&mut self, pulse_number: usize, channel: usize) {
-        let pulse = &mut self.regs.pulses[pulse_number];
+        /*let pulse = &mut self.regs.pulses[pulse_number];
         let audible = pulse.envelope.audible() && pulse.timer.audible();
         let buffer_opt = Apu::get_or_zero_sample_buffer(&mut self.sample_buffers[channel].samples,
                                                         self.sample_buffer_offset,
@@ -658,11 +631,11 @@ impl Apu {
                 pulse.waveform_index = waveform_index;
                 pulse.timer.wavelen_count = wavelen_count;
             }
-        }
+        }*/
     }
 
     fn play_triangle(&mut self, channel: usize) {
-        let triangle = &mut self.regs.triangle;
+        /*let triangle = &mut self.regs.triangle;
         let buffer_opt = Apu::get_or_zero_sample_buffer(&mut self.sample_buffers[channel].samples,
                                                         self.sample_buffer_offset,
                                                         triangle.audible());
@@ -687,11 +660,11 @@ impl Apu {
                 triangle.waveform_index = waveform_index;
                 triangle.timer.wavelen_count = wavelen_count;
             }
-        }
+        }*/
     }
 
     fn play_noise(&mut self, channel: usize) {
-        let noise = &mut self.regs.noise;
+        /*let noise = &mut self.regs.noise;
         let buffer_opt = Apu::get_or_zero_sample_buffer(&mut self.sample_buffers[channel].samples,
                                                         self.sample_buffer_offset,
                                                         noise.envelope.audible());
@@ -717,12 +690,12 @@ impl Apu {
                 noise.timer_count = timer_count;
                 noise.rng = rng;
             }
-        }
+        }*/
     }
 
     // Resamples and flushes channel buffers to the audio output device if necessary.
     pub fn play_channels(&mut self) {
-        let sample_buffer_length = self.sample_buffers[0].samples.len();
+        /*let sample_buffer_length = self.sample_buffers[0].samples.len();
         if self.sample_buffer_offset < sample_buffer_length {
             return;
         }
@@ -767,6 +740,6 @@ impl Apu {
             let _ = self.resampler.process(&mut self.sample_buffers[0].samples,
                                            &mut (*output_buffer).samples);
             (*output_buffer).play_offset = 0;
-        }
+        }*/
     }
 }
